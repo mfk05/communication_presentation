@@ -1,0 +1,637 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>コミュニケーション・チャネルの計算式</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap');
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --blue-50: #E6F1FB;
+    --blue-400: #378ADD;
+    --blue-600: #185FA5;
+    --blue-800: #0C447C;
+    --coral-50: #FAECE7;
+    --coral-400: #D85A30;
+    --coral-600: #993C1D;
+    --teal-400: #1D9E75;
+    --teal-800: #04342C;
+    --amber-400: #BA7517;
+    --gray-100: #F4F4F2;
+    --gray-200: #E8E7E3;
+    --gray-400: #888780;
+    --gray-600: #5F5E5A;
+    --text: #1a1a18;
+    --text-muted: #5F5E5A;
+    --bg: #FAFAF8;
+    --card: #FFFFFF;
+    --border: rgba(0,0,0,0.1);
+    --radius: 12px;
+    --radius-sm: 8px;
+  }
+
+  body {
+    font-family: 'Noto Sans JP', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.7;
+    min-height: 100vh;
+  }
+
+  .page {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 3rem 1.5rem 5rem;
+  }
+
+  /* Header */
+  .header {
+    margin-bottom: 3rem;
+    border-bottom: 1px solid var(--gray-200);
+    padding-bottom: 2rem;
+  }
+  .header-eyebrow {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    color: var(--coral-400);
+    font-weight: 500;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+  }
+  .header-title {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+  }
+  .header-desc {
+    font-size: 15px;
+    color: var(--text-muted);
+    line-height: 1.8;
+    max-width: 540px;
+  }
+
+  /* Step cards */
+  .step-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .step-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--teal-400);
+    letter-spacing: 0.06em;
+    margin-bottom: 0.75rem;
+    text-transform: uppercase;
+  }
+  .step-badge::before {
+    content: '';
+    display: inline-block;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--teal-400);
+    color: white;
+    font-size: 11px;
+    text-align: center;
+    line-height: 18px;
+  }
+  .step-badge[data-n="1"]::before { content: '1'; }
+  .step-badge[data-n="2"]::before { content: '2'; }
+  .step-badge[data-n="3"]::before { content: '3'; }
+  .step-badge[data-n="4"]::before { content: '4'; }
+  .step-badge[data-n="5"]::before { content: '5'; }
+
+  .step-title {
+    font-size: 18px;
+    font-weight: 700;
+    margin-bottom: 0.6rem;
+  }
+  .step-body {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.8;
+  }
+
+  /* Person dot */
+  .person {
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--blue-50);
+    color: var(--blue-800);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  /* Formula visual */
+  .formula-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin: 1.25rem 0;
+  }
+  .fbox {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 0.6rem 1rem;
+    text-align: center;
+    min-width: 80px;
+  }
+  .fbox-main { font-size: 16px; font-weight: 700; }
+  .fbox-sub { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+  .fop { font-size: 20px; color: var(--gray-400); font-weight: 400; }
+  .feq { font-size: 20px; font-weight: 700; }
+  .fbox.result {
+    background: var(--coral-50);
+    border-color: var(--coral-400);
+    color: var(--coral-400);
+  }
+
+  /* Network tabs */
+  .tab-row { display: flex; gap: 6px; margin-bottom: 1rem; flex-wrap: wrap; }
+  .tab {
+    padding: 5px 14px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    color: var(--text-muted);
+    transition: all 0.15s;
+  }
+  .tab:hover { background: var(--gray-200); }
+  .tab.active {
+    background: var(--blue-400);
+    border-color: var(--blue-400);
+    color: #fff;
+  }
+
+  .net-area { display: flex; align-items: center; gap: 2rem; flex-wrap: wrap; }
+  .net-info { min-width: 140px; }
+  .net-count { font-size: 40px; font-weight: 700; color: var(--coral-400); line-height: 1; }
+  .net-unit { font-size: 14px; color: var(--text-muted); margin-top: 4px; }
+  .net-calc { font-size: 13px; color: var(--text-muted); margin-top: 10px; font-family: monospace; background: var(--gray-100); padding: 6px 10px; border-radius: var(--radius-sm); }
+
+  /* Example cards */
+  .example-row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+    margin: 1.25rem 0;
+  }
+  .ex-card {
+    background: var(--gray-100);
+    border: 1px solid var(--gray-200);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    text-align: center;
+  }
+  .ex-card.warn { border-color: var(--amber-400); }
+  .ex-card.danger { border-color: var(--coral-400); }
+  .ex-n { font-size: 12px; color: var(--text-muted); margin-bottom: 6px; }
+  .ex-val { font-size: 26px; font-weight: 700; }
+  .ex-card.warn .ex-val { color: var(--amber-400); }
+  .ex-card.danger .ex-val { color: var(--coral-400); }
+  .ex-sub { font-size: 11px; color: var(--text-muted); margin-top: 4px; }
+
+  /* Insight box */
+  .insight {
+    border-left: 3px solid var(--coral-400);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+    padding: 1rem 1.25rem;
+    background: var(--coral-50);
+    margin-top: 1.25rem;
+  }
+  .insight-title { font-size: 14px; font-weight: 700; margin-bottom: 4px; color: var(--coral-600); }
+  .insight-body { font-size: 13px; color: var(--coral-600); line-height: 1.75; }
+
+  /* Two-person line */
+  .two-person-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 1rem 0;
+  }
+  .connector {
+    flex: 1;
+    max-width: 60px;
+    height: 2px;
+    background: var(--blue-400);
+  }
+  .tag-ok {
+    font-size: 13px;
+    color: var(--teal-400);
+    font-weight: 500;
+    margin-left: 12px;
+  }
+
+  /* Three person layout */
+  .three-layout {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    margin-top: 1rem;
+  }
+  .channel-list {
+    font-size: 13px;
+    line-height: 2.2;
+    color: var(--text-muted);
+  }
+  .channel-list strong { color: var(--text); }
+
+  /* Section divider */
+  .section-divider {
+    border: none;
+    border-top: 1px solid var(--gray-200);
+    margin: 2rem 0;
+  }
+  .section-heading {
+    font-size: 22px;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+  }
+  .section-sub {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+  }
+
+  /* Warning items */
+  .warning-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 1.5rem; }
+  .warning-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 1rem 1.25rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--coral-400);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .warning-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: var(--coral-50);
+    color: var(--coral-400);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .warning-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .warning-desc { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+
+  /* Action items */
+  .action-list { display: flex; flex-direction: column; gap: 10px; }
+  .action-item {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+    padding: 1rem 1.25rem;
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--teal-400);
+    border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  }
+  .action-num {
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    background: #E1F5EE;
+    color: var(--teal-400);
+    font-size: 12px;
+    font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .action-title { font-size: 15px; font-weight: 700; margin-bottom: 3px; }
+  .action-desc { font-size: 13px; color: var(--text-muted); line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <div class="header-eyebrow">コミュニケーション設計の基礎</div>
+    <div class="header-title">人数が増えると<br>なぜ伝わりにくくなるのか</div>
+    <div class="header-desc">チームの情報共有に必要な経路（チャネル）の数は、人数の増加に対して爆発的に増えます。その仕組みをゼロから理解しましょう。</div>
+  </div>
+
+  <!-- Formula premise -->
+  <div class="step-card" style="background:#F4F4F2;border-color:var(--gray-200);margin-bottom:2rem;">
+    <div style="font-size:11px;font-weight:500;color:var(--gray-600);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:0.75rem;">前提となる計算式</div>
+    <div style="font-size:17px;font-weight:700;margin-bottom:1rem;">コミュニケーション・チャネル数の公式</div>
+    <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:1rem;">
+      <div style="background:white;border:1px solid var(--gray-200);border-radius:8px;padding:0.875rem 1.5rem;text-align:center;">
+        <div style="font-size:26px;font-weight:700;letter-spacing:0.02em;">n(n − 1)</div>
+        <div style="width:100%;height:2px;background:var(--text);margin:4px 0;"></div>
+        <div style="font-size:26px;font-weight:700;text-align:center;">2</div>
+      </div>
+      <div style="font-size:14px;color:var(--text-muted);line-height:2;">
+        <span style="display:inline-block;background:white;border:1px solid var(--gray-200);border-radius:6px;padding:2px 10px;font-weight:700;color:var(--text);font-size:15px;">n</span>
+        &nbsp;= プロジェクトのメンバー数
+      </div>
+    </div>
+    <div style="font-size:13px;color:var(--text-muted);line-height:1.8;">
+      プロジェクトメンバー間での情報共有が、誰と誰の間で発生する可能性があるか（全組み合わせ）を算出します。
+    </div>
+    <div style="margin-top:1rem;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;">
+      <div style="background:white;border:1px solid var(--gray-200);border-radius:8px;padding:0.75rem;text-align:center;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">3人の場合</div>
+        <div style="font-size:13px;color:var(--text-muted);">3×(3−1)÷2</div>
+        <div style="font-size:20px;font-weight:700;margin-top:2px;">= 3</div>
+        <div style="font-size:11px;color:var(--text-muted);">チャネル</div>
+      </div>
+      <div style="background:white;border:1px solid var(--amber-400);border-radius:8px;padding:0.75rem;text-align:center;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">5人の場合</div>
+        <div style="font-size:13px;color:var(--text-muted);">5×(5−1)÷2</div>
+        <div style="font-size:20px;font-weight:700;color:var(--amber-400);margin-top:2px;">= 10</div>
+        <div style="font-size:11px;color:var(--text-muted);">チャネル</div>
+      </div>
+      <div style="background:white;border:1px solid var(--coral-400);border-radius:8px;padding:0.75rem;text-align:center;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">10人の場合</div>
+        <div style="font-size:13px;color:var(--text-muted);">10×(10−1)÷2</div>
+        <div style="font-size:20px;font-weight:700;color:var(--coral-400);margin-top:2px;">= 45</div>
+        <div style="font-size:11px;color:var(--text-muted);">チャネル</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 1 -->
+  <div class="step-card">
+    <div class="step-badge" data-n="1">ステップ1</div>
+    <div class="step-title">「チャネル」って何？</div>
+    <div class="step-body">2人いれば、1本の会話ルートが生まれます。このルートを「チャネル」と呼びます。</div>
+    <div class="two-person-row">
+      <div class="person">A</div>
+      <div class="connector"></div>
+      <div class="person">B</div>
+      <span class="tag-ok">→ 1チャネル</span>
+    </div>
+    <div class="step-body">情報共有・確認・報告・相談…あらゆるやり取りはこのチャネルを通じて行われます。</div>
+  </div>
+
+  <!-- Step 2 -->
+  <div class="step-card">
+    <div class="step-badge" data-n="2">ステップ2</div>
+    <div class="step-title">3人になると？ 1人増えただけで3倍に</div>
+    <div class="step-body">CさんがチームにジョインするとA・Bの両方と繋がる必要があります。</div>
+    <div class="three-layout">
+      <svg width="130" height="120" viewBox="0 0 130 120">
+        <line x1="65" y1="16" x2="16" y2="100" stroke="#378ADD" stroke-width="2"/>
+        <line x1="65" y1="16" x2="114" y2="100" stroke="#378ADD" stroke-width="2"/>
+        <line x1="16" y1="100" x2="114" y2="100" stroke="#378ADD" stroke-width="2"/>
+        <circle cx="65" cy="16" r="15" fill="#E6F1FB"/>
+        <circle cx="16" cy="100" r="15" fill="#E6F1FB"/>
+        <circle cx="114" cy="100" r="15" fill="#E6F1FB"/>
+        <text x="65" y="21" text-anchor="middle" font-size="13" font-weight="700" fill="#0C447C" font-family="sans-serif">A</text>
+        <text x="16" y="105" text-anchor="middle" font-size="13" font-weight="700" fill="#0C447C" font-family="sans-serif">B</text>
+        <text x="114" y="105" text-anchor="middle" font-size="13" font-weight="700" fill="#0C447C" font-family="sans-serif">C</text>
+      </svg>
+      <div class="channel-list">
+        A ↔ B &nbsp;…&nbsp; 1本目<br>
+        A ↔ C &nbsp;…&nbsp; 2本目（Cが追加）<br>
+        B ↔ C &nbsp;…&nbsp; 3本目（Cが追加）<br>
+        <strong>合計 3チャネル</strong>
+      </div>
+    </div>
+    <div class="step-body" style="margin-top:0.75rem;">たった1人増えただけで、チャネル数が1→3本に。これが繰り返されます。</div>
+  </div>
+
+  <!-- Step 3 -->
+  <div class="step-card">
+    <div class="step-badge" data-n="3">ステップ3</div>
+    <div class="step-title">数式の意味をかみ砕く</div>
+    <div class="step-body">「全員が全員と1回ずつ握手する回数」と同じ問題です。</div>
+    <div class="formula-row">
+      <div class="fbox">
+        <div class="fbox-main">n 人</div>
+        <div class="fbox-sub">全メンバー数</div>
+      </div>
+      <div class="fop">×</div>
+      <div class="fbox">
+        <div class="fbox-main">(n−1) 人</div>
+        <div class="fbox-sub">1人あたりの相手</div>
+      </div>
+      <div class="fop">÷</div>
+      <div class="fbox">
+        <div class="fbox-main">2</div>
+        <div class="fbox-sub">重複を除く</div>
+      </div>
+      <div class="feq">=</div>
+      <div class="fbox result">
+        <div class="fbox-main">チャネル数</div>
+        <div class="fbox-sub">繋がりの総数</div>
+      </div>
+    </div>
+    <div class="step-body">
+      A↔BとB↔Aは同じ繋がりなので2で割ります。それだけです。<br>
+      式で書くと：<strong>n × (n−1) ÷ 2</strong>
+    </div>
+  </div>
+
+  <!-- Step 4 -->
+  <div class="step-card">
+    <div class="step-badge" data-n="4">ステップ4</div>
+    <div class="step-title">ネットワーク図で確かめる</div>
+
+    <div class="tab-row">
+      <div class="tab active" onclick="showNet(3,this)">3人</div>
+      <div class="tab" onclick="showNet(5,this)">5人</div>
+      <div class="tab" onclick="showNet(8,this)">8人</div>
+      <div class="tab" onclick="showNet(10,this)">10人</div>
+    </div>
+
+    <div class="net-area">
+      <svg id="net-svg" width="190" height="190" viewBox="-95 -95 190 190"></svg>
+      <div class="net-info">
+        <div class="net-unit">チャネル数</div>
+        <div class="net-count" id="net-count">3</div>
+        <div class="net-unit" style="margin-top:4px;">本の繋がり</div>
+        <div class="net-calc" id="net-calc">3 × (3−1) ÷ 2 = 3</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Step 5 -->
+  <div class="step-card">
+    <div class="step-badge" data-n="5">ステップ5</div>
+    <div class="step-title">人数が2倍になると、チャネルは約4倍になる</div>
+    <div class="example-row">
+      <div class="ex-card">
+        <div class="ex-n">3人チーム</div>
+        <div class="ex-val">3</div>
+        <div class="ex-sub">チャネル</div>
+      </div>
+      <div class="ex-card warn">
+        <div class="ex-n">5人チーム</div>
+        <div class="ex-val">10</div>
+        <div class="ex-sub">チャネル（3.3倍）</div>
+      </div>
+      <div class="ex-card danger">
+        <div class="ex-n">10人チーム</div>
+        <div class="ex-val">45</div>
+        <div class="ex-sub">チャネル（15倍！）</div>
+      </div>
+    </div>
+    <div class="insight">
+      <div class="insight-title">つまり、何が起きているのか</div>
+      <div class="insight-body">
+        人数が増えても、1人ひとりが管理すべき相手の数も同時に増えています。10人チームでは1人が9本のチャネルを抱えることになり、情報の見落とし・伝達漏れが構造的に起きやすい状態になります。<br><br>
+        「なんか最近伝わらないことが増えた」と感じたら、それは個人の問題ではなく、チャネル数が増えすぎているサインです。
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider" />
+
+  <!-- 注意点 -->
+  <div class="section-heading">人が増えると何が起きるか</div>
+  <div class="section-sub">チャネル数の増加は、チームの中でこんな問題を引き起こします。</div>
+
+  <div class="warning-list">
+    <div class="warning-item">
+      <div class="warning-num">1</div>
+      <div>
+        <div class="warning-title">情報伝達の遅延・欠落</div>
+        <div class="warning-desc">全員への情報共有が難しくなり、「聞いていない」「知らなかった」が増加。チャネル数が多いほど、情報が途中で止まるリスクが構造的に高まります。</div>
+      </div>
+    </div>
+    <div class="warning-item">
+      <div class="warning-num">2</div>
+      <div>
+        <div class="warning-title">意思決定の遅れ</div>
+        <div class="warning-desc">意見を集約する相手が増えると、合意形成に時間がかかります。5人→10人で会議の複雑度は4倍以上。全員一致を前提にした運営は機能しなくなります。</div>
+      </div>
+    </div>
+    <div class="warning-item">
+      <div class="warning-num">3</div>
+      <div>
+        <div class="warning-title">コミュニケーションコストの増大</div>
+        <div class="warning-desc">1人が管理すべきチャネルが増えると、報告・確認・調整に費やす時間が増加し、本来の業務が圧迫されます。「話し合うための時間」が増えすぎる状態に。</div>
+      </div>
+    </div>
+    <div class="warning-item">
+      <div class="warning-num">4</div>
+      <div>
+        <div class="warning-title">情報の非対称性が生まれる</div>
+        <div class="warning-desc">全チャネルを把握できる人がいなくなり、「Aさんは知っているがBさんは知らない」状態が常態化。チームの認識のズレが大きくなります。</div>
+      </div>
+    </div>
+    <div class="warning-item">
+      <div class="warning-num">5</div>
+      <div>
+        <div class="warning-title">小さなグループへの分断</div>
+        <div class="warning-desc">人は自然と関係の濃い数人とのみ深くやり取りするようになり、チーム全体ではなくサブグループ単位で動き始めます。組織の一体感が失われやすくなります。</div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="section-divider" />
+
+  <!-- アクション -->
+  <div class="section-heading">じゃあ、どうすればいいか</div>
+  <div class="section-sub">チャネル数の増加を「構造」で解決する4つのアプローチです。</div>
+
+  <div class="action-list">
+    <div class="action-item">
+      <div class="action-num">1</div>
+      <div>
+        <div class="action-title">情報の流れを「設計」する</div>
+        <div class="action-desc">全員が全員に伝える構造をやめ、情報の流れを明文化する。定例・チャンネル・ドキュメントの役割を決め、誰がどこを見れば分かるかを統一します。</div>
+      </div>
+    </div>
+    <div class="action-item">
+      <div class="action-num">2</div>
+      <div>
+        <div class="action-title">チームをサブユニットに分ける</div>
+        <div class="action-desc">責任範囲を持った小さな単位（5〜7人）に分割すると、チャネル数を劇的に減らせます。ユニット内で完結させ、ユニット間は代表者を通じて連携します。</div>
+      </div>
+    </div>
+    <div class="action-item">
+      <div class="action-num">3</div>
+      <div>
+        <div class="action-title">非同期コミュニケーションを活用する</div>
+        <div class="action-desc">全員が同時に集まる会議を減らし、Slack・ドキュメント・議事録などで非同期に共有する仕組みを作る。「読めば分かる」状態を増やすのが鍵です。</div>
+      </div>
+    </div>
+    <div class="action-item">
+      <div class="action-num">4</div>
+      <div>
+        <div class="action-title">意思決定者を明確にする</div>
+        <div class="action-desc">全員合意は人数が増えると現実的でなくなります。誰が最終決定するかを決め、全員で「議論」しても全員で「決定」しない仕組みを意識的に作りましょう。</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+function drawNetwork(n, svgEl) {
+  svgEl.innerHTML = '';
+  const r = 76;
+  const persons = [];
+  for (let i = 0; i < n; i++) {
+    const angle = (2 * Math.PI * i / n) - Math.PI / 2;
+    persons.push({ x: r * Math.cos(angle), y: r * Math.sin(angle) });
+  }
+  for (let i = 0; i < n; i++) {
+    for (let j = i + 1; j < n; j++) {
+      const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+      line.setAttribute('x1', persons[i].x);
+      line.setAttribute('y1', persons[i].y);
+      line.setAttribute('x2', persons[j].x);
+      line.setAttribute('y2', persons[j].y);
+      line.setAttribute('stroke', '#B5D4F4');
+      line.setAttribute('stroke-width', '1.5');
+      svgEl.appendChild(line);
+    }
+  }
+  const names = ['A','B','C','D','E','F','G','H','I','J'];
+  persons.forEach((p, i) => {
+    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+    c.setAttribute('cx', p.x); c.setAttribute('cy', p.y); c.setAttribute('r', '16');
+    c.setAttribute('fill', '#E6F1FB');
+    const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+    t.setAttribute('x', p.x); t.setAttribute('y', p.y + 5);
+    t.setAttribute('text-anchor', 'middle');
+    t.setAttribute('font-size', '13'); t.setAttribute('font-weight', '700');
+    t.setAttribute('fill', '#0C447C');
+    t.setAttribute('font-family', 'sans-serif');
+    t.textContent = names[i] || (i + 1);
+    svgEl.appendChild(c);
+    svgEl.appendChild(t);
+  });
+}
+
+function showNet(n, tabEl) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  tabEl.classList.add('active');
+  drawNetwork(n, document.getElementById('net-svg'));
+  const ch = n * (n - 1) / 2;
+  document.getElementById('net-count').textContent = ch;
+  document.getElementById('net-calc').textContent = n + ' × (' + n + '−1) ÷ 2 = ' + ch;
+}
+
+drawNetwork(3, document.getElementById('net-svg'));
+</script>
+</body>
+</html>
